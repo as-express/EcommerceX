@@ -1,0 +1,421 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"] 
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Admin {
+  id               String             @id @default(cuid())
+  email            String             @unique
+  password         String
+  role             Role               @default(Admin)
+  username         String             @unique
+  Chat             Chat[]
+  Message          Message[]
+  Notification     Notification[]
+  NotificationItem NotificationItem[]
+}
+
+model Coupon {
+  id         String   @id @default(cuid())
+  title      String
+  discount   Int      @default(0)
+  orderFrom  Int      @default(0)
+  expiration DateTime
+  ascoin     Int?
+  users      User[]   @relation("CouponToUser")
+}
+
+model Statistic {
+  id          String @id @default(cuid())
+  adminCount  Int    @default(0)
+  salersCount Int    @default(0)
+  usersCount  Int    @default(0)
+  ordersCount Int    @default(0)
+  saledCount  Int    @default(0)
+  totalProfit Int    @default(0)
+}
+
+model userStatistic {
+  id         String @id @default(cuid())
+  totalUsers Int    @default(0)
+  newUsers   Int    @default(0)
+}
+
+model salerStatistic {
+  id           String @id @default(cuid())
+  totalSalers  Int    @default(0)
+  famousSalers Int    @default(0)
+  newSalers    Int    @default(0)
+}
+
+model TopSaler {
+  id             String    @id @default(cuid())
+  salesmanId        String
+  receivedOrders Int       @default(0)
+  profit         Int       @default(0)
+  Salesman       Salesman? @relation(fields: [salesmanId], references: [id])
+}
+
+model ProductSatistic {
+  id                 String @id @default(cuid())
+  totalProducts      Int    @default(0)
+  famousProducts     Int    @default(0)
+  highRatingProducts Int    @default(0)
+  promotionProducts  Int    @default(0)
+}
+
+model OrderStatistic {
+  id               String @id @default(cuid())
+  totalOrders      Int    @default(0)
+  collectingOrders Int    @default(0)
+  inWayOrders      Int    @default(0)
+  canceledOrders   Int    @default(0)
+  deliveredOrders  Int    @default(0)
+}
+
+model Safr {
+  id      String  @id @default(cuid())
+  avatar  String?
+  surname String
+}
+
+model User {
+  id             String         @id @default(cuid())
+  avatar         String?
+  surname        String
+  username       String         @unique
+  password       String?
+  gender         Gender?
+  birth          Int?
+  email          String?        @unique
+  salesmanId        String?
+  Address        Address[]
+  AsCoin         AsCoin[]
+  Basket         Basket[]
+  Chat           Chat[]
+  Drawing        Drawing[]
+  Favorite       Favorite[]
+  Message        Message[]
+  Notification   Notification[]
+  Order          Order[]
+  Review         Review[]
+  Coupon         Coupon[]       @relation("CouponToUser")
+  viewedProducts Product[]      @relation("ProductToUser")
+  subscriptions  Shop[]         @relation("ShopToUser")
+}
+
+model Salesman {
+  id               String             @id @default(cuid())
+  title            String             @unique
+  email            String             @unique
+  password         String
+  isVerified       Boolean            @default(false)
+  shopsCount       Int                @default(0)
+  Chat             Chat[]
+  Message          Message[]
+  Notification     Notification[]
+  NotificationItem NotificationItem[]
+  shops            Shop[]
+  TopSaler         TopSaler[]
+}
+
+model Shop {
+  id               String        @id @default(cuid())
+  title            String        @unique
+  avatar           String
+  productsCount    Int           @default(0)
+  promotionsCount  Int           @default(0)
+  shopRating       Int           @default(0)
+  ordersCount      Int           @default(0)
+  productsRating   Int           @default(0)
+  subscribersCount Int           @default(0)
+  salesmanId          String
+  saleCount        Int           @default(0)
+  totalProfit      Int           @default(0)
+  achivements      Achievement[]
+  products         Product[]
+  subscribers      User[]        @relation("ShopToUser")
+  Salesman         Salesman?     @relation(fields: [salesmanId], references: [id])
+}
+
+model EmailOtp {
+  id    String @id @default(cuid())
+  email String @unique
+  code  String
+  createdAt DateTime @default(now())
+}
+
+model FakeUser {
+  id       String  @id @default(cuid())
+  avatar   String?
+  surname  String?
+  username String  @unique
+  birth    Int?
+  gender   Gender?
+  email    String? @unique
+  password String?
+}
+
+model Achievement {
+  id          String  @id @default(cuid())
+  title       String
+  icon        String
+  sales       Int?
+  rating      Int?
+  subscribers Int?
+  description  String
+  reached     Boolean @default(false)
+  shopId      String?
+  Shop        Shop?   @relation(fields: [shopId], references: [id])
+}
+
+model Chat {
+  id           String    @id @default(cuid())
+  messageCount Int       @default(0)
+  salesmanId      String?
+  userId       String
+  adminId      String?
+  admin        Admin?    @relation(fields: [adminId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+  messages     Message[]
+  Salesman     Salesman? @relation(fields: [salesmanId], references: [id])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  text       String
+  isRead     Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  userId     String?
+  salesmanId    String?
+  chatId     String?
+  adminId    String?
+  admin      Admin?    @relation(fields: [adminId], references: [id])
+  Chat       Chat?     @relation(fields: [chatId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
+  Salesman   Salesman? @relation(fields: [salesmanId], references: [id])
+}
+
+model Address {
+  id        String @id @default(cuid())
+  latitude  Float
+  longitude Float
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id                String             @id @default(cuid())
+  notificationCount Int                @default(0)
+  userId            String?
+  adminId           String?
+  salesmanId           String?
+  admin             Admin?             @relation(fields: [adminId], references: [id])
+  user              User?              @relation(fields: [userId], references: [id])
+  items             NotificationItem[]
+  Salesman          Salesman?          @relation(fields: [salesmanId], references: [id])
+}
+
+model NotificationItem {
+  id             String        @id @default(cuid())
+  text           String
+  isRead         Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  notificationId String?
+  salesmanId        String?
+  adminId        String?
+  byAdmin        Admin?        @relation(fields: [adminId], references: [id])
+  Notification   Notification? @relation(fields: [notificationId], references: [id])
+  bySalesman       Salesman?     @relation(fields: [salesmanId], references: [id])
+}
+
+model Favorite {
+  id            String    @id @default(cuid())
+  productsCount Int       @default(0)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  products      Product[]
+}
+
+model Basket {
+  id           String        @id @default(cuid())
+  productCount Int           @default(0)
+  totalPrice   Int           @default(0)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  products     BasketItems[]
+}
+
+model BasketItems {
+  id            String  @id @default(cuid())
+  productsCount Int     @default(0)
+  price         Int     @default(0)
+  basketId      String?
+  productId     String
+  Basket        Basket? @relation(fields: [basketId], references: [id])
+  product       Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id          String       @id @default(cuid())
+  ordersCount Int          @default(0)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  orders      OrderItems[]
+}
+
+model OrderItems {
+  id            String    @id @default(cuid())
+  productsCount Int       @default(0)
+  price         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  orderStatus   Status
+  orderId       String?
+  Order         Order?    @relation(fields: [orderId], references: [id])
+  products      Product[]
+}
+
+model Category {
+  id           String    @id @default(cuid())
+  icon         String
+  title        String    @unique
+  productCount Int       @default(0)
+  slug         String    @unique
+  products     Product[]
+  sections     Section[]
+}
+
+model NewProducts {
+  id             String    @id @default(cuid())
+  prodcuctsCount Int       @default(0)
+  products       Product[]
+}
+
+model PopularProducts {
+  id             String    @id @default(cuid())
+  prodcuctsCount Int       @default(0)
+  products       Product[]
+}
+
+model Section {
+  id            String    @id @default(cuid())
+  title         String
+  productsCount Int       @default(0)
+  categoryId    String?
+  slug          String    @unique
+  products      Product[]
+  Category      Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Brand {
+  id           String    @id @default(cuid())
+  icon         String
+  title        String    @unique
+  slug         String    @unique
+  productCount Int       @default(0)
+  products     Product[]
+}
+
+model AsCoin {
+  id     String @id @default(cuid())
+  count  Int    @default(0)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Drawing {
+  id         String    @id @default(cuid())
+  title      String
+  expiration DateTime
+  userId     String?
+  winner     User?     @relation(fields: [userId], references: [id])
+  products   Product[]
+}
+
+model Tag {
+  id            String    @id @default(cuid())
+  title         String
+  productsCount Int       @default(0)
+  products      Product[] @relation("ProductToTag")
+}
+
+model Product {
+  id                String           @id @default(cuid())
+  title             String
+  images            String[]
+  slug              String           @unique
+  price             Int              @default(0)
+  oldPrice          Int?
+  model             String
+  description       String?
+  color             String[]
+  version           String[]
+  size              String[]
+  weight            String?
+  productCount  Int @default(1)
+  rating            Int              @default(0)
+  saleCount         Int              @default(0)
+  reviewsCount      Int              @default(0)
+  createdAt DateTime @default(now())
+  favoriteId        String?
+  orderItemsId      String?
+  categoryId        String?
+  sectionId         String?
+  brandId           String?
+  discount          Int?
+  promotion         Boolean          @default(false)
+  newProductsId     String?
+  popularProductsId String?
+  drawingId         String?
+  isActive          Boolean          @default(true)
+  tags              String[]
+  shopId            String
+  BasketItems       BasketItems[]
+  Brand             Brand?           @relation(fields: [brandId], references: [id])
+  Category          Category?        @relation(fields: [categoryId], references: [id])
+  Drawing           Drawing?         @relation(fields: [drawingId], references: [id])
+  Favorite          Favorite?        @relation(fields: [favoriteId], references: [id])
+  NewProducts       NewProducts?     @relation(fields: [newProductsId], references: [id])
+  OrderItems        OrderItems?      @relation(fields: [orderItemsId], references: [id])
+  PopularProducts   PopularProducts? @relation(fields: [popularProductsId], references: [id])
+  Section           Section?         @relation(fields: [sectionId], references: [id])
+  Shop              Shop             @relation(fields: [shopId], references: [id])
+  reviews           Review[]
+  Tag               Tag[]            @relation("ProductToTag")
+  User              User[]           @relation("ProductToUser")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(5)
+  text      String?
+  createdAt DateTime @default(now())
+  productId String
+  userId    String
+  image     String[]
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  Admin
+  superAdmin
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum Status {
+  Collecting
+  InWay
+  Delivered
+  Canceled
+}
